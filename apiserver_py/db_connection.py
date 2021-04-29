@@ -13,7 +13,7 @@ class MysqlPool:
         'port': 3306,
         'user': "root",
         'password': "345466",
-        'db': "test",
+        'db': "command",
         'charset': 'utf8',
         'maxconnections': 30,  # 连接池最大连接数量
         'cursorclass': pymysql.cursors.DictCursor

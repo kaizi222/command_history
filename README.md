@@ -4,5 +4,3 @@
 python
 # html
 vue
-
-![Uploading image.png…]()

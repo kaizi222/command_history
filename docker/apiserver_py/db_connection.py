@@ -2,28 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import pymysql
-from configparser import ConfigParser
 
 from dbutils.pooled_db import PooledDB
 
 
 class MysqlPool:
-    cfg = ConfigParser()
-    cfg.read("conn.ini")
-    host = dict(cfg.items("host"))
-    port = dict(cfg.items("port"))
-    user = dict(cfg.items("user"))
-    password = dict(cfg.items("password"))
-    db = dict(cfg.items("db"))
-    charset = dict(cfg.items("charset"))
     config = {
         'creator': pymysql,
-        'host': host,
-        'port': port,
-        'user': user,
-        'password': password,
-        'db': db,
-        'charset': charset,
+        'host': "192.168.1.146",
+        'port': 3306,
+        'user': "root",
+        'password': "345466",
+        'db': "test",
+        'charset': 'utf8',
         'maxconnections': 30,  # 连接池最大连接数量
         'cursorclass': pymysql.cursors.DictCursor
     }
@@ -39,23 +30,20 @@ class MysqlPool:
         self.cursor.close()
         self.conn.close()
 
-
 def db_conn(func):
     def wrapper(*args, **kw):
         with MysqlPool() as db:
             result = func(db, *args, **kw)
         return result
-
     return wrapper
-
 
 # 实际应用的地方
 class Mysql_Db_Manage:
-    """table: register_phone"""
 
+    """table: register_phone"""
     @staticmethod
     @db_conn
-    def update_data(db, sql):
+    def update_data(db,sql):
         try:
             db.cursor.execute(sql)
             db.conn.commit()
@@ -64,10 +52,9 @@ class Mysql_Db_Manage:
         return 1
 
     """table: register_phone"""
-
     @staticmethod
     @db_conn
-    def is_have(db, sql):
+    def is_have(db,sql):
         db.cursor.execute(sql)
         result = db.cursor.fetchone()
         print(result)
@@ -76,19 +63,18 @@ class Mysql_Db_Manage:
         return True
 
     """table: register_phone"""
-
     @staticmethod
     @db_conn
-    def select_one_data(db, sql):
+    def select_one_data(db,sql):
         db.cursor.execute(sql)
         result = db.cursor.fetchone()
         return result
 
-    """table: register_phone"""
 
+    """table: register_phone"""
     @staticmethod
     @db_conn
-    def select_All_data(db, sql):
+    def select_All_data(db,sql):
         db.cursor.execute(sql)
         result = db.cursor.fetchall()
         return result

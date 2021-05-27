@@ -5,6 +5,7 @@
                     <b-navbar-brand href="#"><b-link to="/history" router-tag="b-navbar-brand">时间记录</b-link></b-navbar-brand>
                     <b-navbar-brand href="#"><b-link to="/lump" router-tag="b-navbar-brand">命令记录</b-link></b-navbar-brand>
                     <b-navbar-brand href="#"><b-link to="/share" router-tag="b-navbar-brand">分享库</b-link></b-navbar-brand>
+                    <b-navbar-brand href="#"><b-link to="/black" router-tag="b-navbar-brand">黑名单</b-link></b-navbar-brand>
                     <b-navbar-brand href="#"><b-link to="" router-tag="b-navbar-brand">智库</b-link></b-navbar-brand>
                     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
                     <b-collapse id="nav-collapse" is-nav>

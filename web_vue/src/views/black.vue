@@ -5,7 +5,21 @@
             <b-form-select v-model="selected" :options="options" size="sm" class="mt-3"></b-form-select>
             <div class="mt-3">Selected: <strong>{{ selected }}</strong></div>
         </div>-->
-
+        <b-row class="mt-3 mb-3">
+            <b-col>
+                <div>
+                    <b-form inline @submit="searchByName">
+                        <!--<label class="sr-only" for="inline-form-input-name">Name</label>
+                        <b-form-timepicker  locale="en"></b-form-timepicker>
+                        <label class="sr-only" for="inline-form-input-username">Username</label>
+                        <b-form-timepicker  locale="en"></b-form-timepicker>-->
+                        <b-form-input v-model="form.searchName" placeholder="Enter your command"></b-form-input>
+                        <b-button type="submit"  variant="primary" >搜索</b-button>
+                        <b-button type="submit"  @click="info2($event.target)" >添加</b-button>
+                    </b-form>
+                </div>
+            </b-col>
+        </b-row>
 <!--        <div>-->
 <!--            <b-form inline>-->
 <!--                <label class="sr-only" for="inline-form-input-name">Name</label>-->
@@ -19,32 +33,22 @@
 <!--        </div>-->
 
         <b-table hover :items="items" :fields="fields"  :borderless="true" :small="true" >
-            <template #cell(actions)="row">
-                <b-button size="sm" @click="info(row.item, row.index, $event.target)" class="mr-1" variant="outline-primary">
-                    添加描述
-                </b-button>
-                <b-button size="sm" @click="info2(row.item, row.index, $event.target)" class="mr-1" variant="outline-success">
-                    分享
-                </b-button>
-            </template>
-
         </b-table>
-
         <!-- Info modal -->
-        <b-modal :id="infoModal.id" :title="infoModal.title" size="xl" ok-only>
+        <b-modal :id="infoModal.id" :title="infoModal.title" size="xl" hide-footer>
             <pre>{{ infoModal.content }}</pre>
             <div>
             <b-form @submit="onSubmit" @reset="onReset" v-if="show">
                 <b-form-group
                         id="input-group-1"
-                        label="添加描述:"
+                        label="命令:"
                         label-for="input-1"
                 >
                     <b-form-input
                             id="input-1"
                             type="text"
-                            v-model="form.descriptionadd"
-                            placeholder="描述"
+                            v-model="form.cmd"
+                            placeholder="cmd"
                             required
                     ></b-form-input>
                 </b-form-group>
@@ -57,14 +61,13 @@
 </template>
 
 <script>
+    import { formatDate } from '@/directives/time_format'
     export default {
         data() {
             return {
                 fields:[
-                    {key:'time' , label: '时间' },
-                    {key:'command' , label: '命令' },
-                    {key:'description' , label: '描述'},
-                    {key:'actions' , label: '描述'}
+                    {key:'cmd' , label: '时间' },
+                    {key:'create_time' , label: '命令' }
 
                 ],
                 items: [
@@ -80,22 +83,24 @@
                     code: '',
                     day: '',
                     description: "",
-                    descriptionadd: '',
+                    cmd: '',
                     grade: '',
                     id:'',
+                    searchName:'',
                 },
                 show: true,
                 value: 333,
-                text: 'ddd'
+                text: 'ddd',
+                currentPage:1,
+                pages :"1"
             }
         },
         created() {
             const _this = this
-            this.axios.get('getAll').then(function (resp) {
+            this.axios.get('getBlackAll?pages=0&number=3').then(function (resp) {
                 _this.items = modify(resp.data)
-                console.log(resp.data[0]['time'])
+                console.log(resp.data[0])
                 _this.pages = resp.data["count"]*20
-                console.log( resp.data)
             })
         },
         methods:{
@@ -120,22 +125,19 @@
                 this.form.code = item.code
                 this.form.day = item.day
                 this.$root.$emit('bv::show::modal', this.infoModal.id, button)
-            },info2(item, index, button) {
-                this.infoModal.title = `分享: `
-                this.infoModal.content = `命令：${item.command}\n描述：${item.description}`
-                this.form.command = item.command
-                this.form.description = item.description
+            },info2( button) {
                 this.$root.$emit('bv::show::modal', this.infoModal.id, button)
             },onSubmit(event) {
                 event.preventDefault()
                 const __this = this
                 if(this.form.id == 0){
-                    this.axios.post(`add_share`,{
-                            command:this.form.command,
-                        description:this.form.description+this.form.descriptionadd
+                    this.axios.post(`addBlack`,{
+                            cmd:this.form.cmd
                     }).then(function (resp) {
                         if(resp.data == 2){
-                            alert("进入")
+                            alert("成功")
+                            __this.infoModal.result = '添加成功'
+                            __this.searchByName()
                             __this.$nextTick(() => {
                                 __this.$bvModal.hide('info-modal')
                             })
@@ -156,23 +158,37 @@
 
                 // alert(JSON.stringify(this.form))
 
+            },searchByName() {
+                const _this = this
+                this.axios.get('getBlackAll?name='+this.form.searchName).then(function (resp) {
+                    _this.items = modify(resp.data)
+                })
+            },addBlack(){
+                this.axios.post(`addBlack`,{
+                    id:this.form.id,
+                    description:this.form.descriptionadd
+                }).then(function (resp) {
+                    alert(resp.data)
+                    if(resp.data == 2){
+                        this.infoModal.result = "分享成功！"
+                    }
+                })
             }
+        },
+        filters:{
+            formatDate(time) {
+                // 秒处理为毫秒
+                time = time * 1000
+                let date = new Date(time)
+                return formatDate(date, 'yyyy-MM-dd hh:mm')
+            },
         }
 
     }
     function modify(items) {
-         var mycars=new Set()
-        var data_array=new Array()
         for(var i = 0 ; i < items.length; i++){
-            let date = new Date(items[i]['time']*1000)
-            var day = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}`
-             if(!mycars.has(day)){
-                 mycars.add(day)
-                 data_array.push({"time":day,"variant":"primary"});
-             }
-            items[i]['time'] = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} `;
-            data_array.push(items[i])
+            items[i]['create_time'] = formatDate(items[i]['create_time'], 'yyyy-MM-dd hh:mm')
         }
-        return data_array
+        return items
     }
 </script>

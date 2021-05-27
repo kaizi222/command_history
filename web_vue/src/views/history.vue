@@ -90,7 +90,9 @@
                 },
                 show: true,
                 value: 333,
-                text: ''
+                text: '',
+                currentPage:1,
+                pages :"1"
             }
         },
         created() {

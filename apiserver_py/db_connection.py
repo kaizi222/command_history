@@ -10,12 +10,12 @@ from dbutils.pooled_db import PooledDB
 class MysqlPool:
     cfg = ConfigParser()
     cfg.read("conn.ini")
-    host = dict(cfg.items("host"))
-    port = dict(cfg.items("port"))
-    user = dict(cfg.items("user"))
-    password = dict(cfg.items("password"))
-    db = dict(cfg.items("db"))
-    charset = dict(cfg.items("charset"))
+    host = cfg.get("mysql_db","host")
+    port = cfg.getint("mysql_db","port")
+    user = cfg.get("mysql_db","user")
+    password = cfg.get("mysql_db","password")
+    db = cfg.get("mysql_db","db")
+    charset = cfg.get("mysql_db","charset")
     config = {
         'creator': pymysql,
         'host': host,

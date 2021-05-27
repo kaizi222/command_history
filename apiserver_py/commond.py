@@ -5,6 +5,8 @@
 # @function: get service of fastapi
 
 import time
+from typing import Optional
+
 from fastapi import FastAPI, Body
 from fastapi.middleware.cors import CORSMiddleware
 from db_connection import Mysql_Db_Manage
@@ -15,12 +17,6 @@ black_cmd = 'black_cmd'
 table_command = 'my_command'
 table_share_cmd = 'cmd'
 table_share_command = 'command'
-origins = [
-    "http://localhost",
-    "http://localhost:8000"
-    "http://localhost:8082",
-    "http://192.168.1.8:8082",
-]
 
 app.add_middleware(
     CORSMiddleware,
@@ -51,23 +47,38 @@ def addH(command: str = Body(..., embed=True)):
     if not result:
         sql = "insert into " + table_cmd + "(cmd,`time`) values('" + str(command.split(" ")[0]) + "'," + str(
             int(time.time())) + ")"
-        print(sql + "--->")
         Mysql_Db_Manage.update_data(sql=sql)
     sql = "insert into " + table_command + "(command,`time`) values('" + str(command) + "'," + str(
         int(time.time())) + ")"
-    print("===>" + str(Mysql_Db_Manage.update_data(sql=sql)))
     return '2'
 
 
 @app.get('/getAll')
-def addH():
-    sql = "select * from " + table_command + " order by time desc"
-    return Mysql_Db_Manage.select_All_data(sql=sql)
+def addH(name: Optional[str] = False,detail: Optional[str] = False):
+
+    sql = "select * from " + table_command
+    if name:
+        sql += "  where command like '%" + name + "%' "
+    sql += " order by time desc "
+    result = Mysql_Db_Manage.select_All_data(sql=sql)
+    data = []
+    result_data = []
+    if not detail:
+        print("进入了这里")
+        for line in result:
+            if line['command'] not in data:
+                if str(line['command']).split(" ").__len__() > 1:
+                    print(line['command'])
+                    data.append(line['command'])
+                    result_data.append(line)
+
+    return result_data
 
 
 @app.get('/getAll/name={name}')
 def getAll(name: str = None):
-    sql = "select * from " + table_command + " where command like '%"+name+"%' order by time desc"
+    sql = "select * from " + table_command + " where command like '%" + name + "%' order by time desc"
+    print("返回结果是：ddd" )
     return Mysql_Db_Manage.select_All_data(sql=sql)
 
 
@@ -81,7 +92,6 @@ def getAll(cmd: str = None):
     if cmd is not None and cmd != 'null':
         sql += " where command like '" + cmd + "%'"
     sql += " order by time desc"
-    print(sql)
     return Mysql_Db_Manage.select_All_data(sql=sql)
 
 
@@ -94,8 +104,6 @@ def addH(cmd: str = None):
 @app.post('/update_command')
 def update_command(id: int = Body(..., embed=True), description: str = Body(..., embed=True)):
     sql = "update " + table_command + " set description = '" + description + "' where id = " + str(id)
-    print(sql)
-    print("===>" + str(Mysql_Db_Manage.update_data(sql=sql)))
     return '2'
 
 
@@ -110,7 +118,6 @@ def add_share(command: str = Body(..., embed=True), description: str = Body(...,
     sql = "insert into " + table_share_command + "(command,`time`,description) values('" + str(command) + "'," + str(
         int(time.time())) + ",'" + str(description) + "')"
     strs = Mysql_Db_Manage.update_data(sql=sql)
-    print("===-->" + str(strs))
     return '2'
 
 
@@ -132,6 +139,29 @@ def getShareAll(cmd: str = None):
     if cmd is not None:
         sql += " where command like '" + cmd + "%'"
     sql += " order by time desc"
+    return Mysql_Db_Manage.select_All_data(sql=sql)
+
+
+@app.post('/addBlack')
+def addBlack(cmd: str = Body(..., embed=True)):
+    if cmd is not None:
+        sql = "select * from " + black_cmd + " where cmd = '" + cmd + "'"
+        if Mysql_Db_Manage.is_have(sql=sql):
+            return 7
+        sql = "insert into " + black_cmd + "(cmd,`create_time`) values('" + str(cmd) + "'," + str(
+            int(time.time())) + ")"
+        result = Mysql_Db_Manage.update_data(sql=sql)
+        print("添加成功，返回结果是：" + str(result))
+        return '2'
+
+
+@app.get('/getBlackAll')
+def getAll(name: Optional[str] = False):
+    sql = "select * from " + black_cmd
+    if name:
+        sql += " where cmd like '%" + name + "%'"
+
+    sql += " order by create_time desc"
     return Mysql_Db_Manage.select_All_data(sql=sql)
 
 
